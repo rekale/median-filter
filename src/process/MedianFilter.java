@@ -110,11 +110,17 @@ public class MedianFilter{
      */
     public BufferedImage filter(BufferedImage srcImage) {
     	
+    	//baca tinggi gambar
         int height = srcImage.getHeight();
+        //baca lebar gambar
         int width = srcImage.getWidth();
         
-    	BufferedImage tempImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        //bikin objek gambar dengan ukuran yang sama dengan gambar yg mau di filter
+        //tapi ini gambar masih kosong, objek gambar ini yang bakal di isi sama
+        //hasil filter gambar
+    	BufferedImage tempImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     	
+    	//variabel buat nampung pixel tetangga
         int[] neighbourPixels;
         
         for (int h = 0; h < height; h++){
@@ -129,7 +135,7 @@ public class MedianFilter{
                 green = new int[neighbourPixels.length];
                 blue = new int[neighbourPixels.length];
                 
-                //get the red,green,blue value from each neighbour pixels
+                //ambil value red green dan blue dari semua pixel tetangga
                 for (int i = 0; i < neighbourPixels.length; i++) {
                     red[i] = Pixel.getRed( neighbourPixels[i] );
                     green[i] = Pixel.getGreen( neighbourPixels[i] );
@@ -141,9 +147,10 @@ public class MedianFilter{
                 int G = getMedian(green);
                 int B = getMedian(blue);
                 
-                //set the new pixel value using the median just found
+                //bikin pixel baru hasil dari median filter
                 int spixel = Pixel.createRGB(R, G, B);
                 
+                //save ke objek gambar yang kosong 
                 tempImage.setRGB(w, h, spixel);
             }
         	

@@ -18,6 +18,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 
@@ -36,6 +37,9 @@ public class Frame extends JFrame {
 	private JButton btnMedian;
 	private JTextField textRadius;
 	private JLabel lblNewLabel;
+	private JButton btnSave;
+	private BufferedImage filteredImage;
+	private JButton btnRefresh;
 
 	/**
 	 * Launch the application.
@@ -107,43 +111,118 @@ public class Frame extends JFrame {
 			}
 		});
 		panelControl.add(btnMedian);
+
+		btnSave = new JButton("save");
+		btnSave.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				btnSaveImage(e);
+			}
+		});
+		panelControl.add(btnSave);
+
+		btnRefresh = new JButton("refresh");
+		btnRefresh.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				btnRefresh(e);
+			}
+		});
+		panelControl.add(btnRefresh);
 	}
 
+	protected void btnRefresh(ActionEvent e) {
+		this.cleanPanelShow();
+		this.btnChooseImage.setEnabled(true);
+		this.btnMedian.setEnabled(true);
+	}
+
+	/**
+	 * fungsi untuk milih gambar
+	 * 
+	 * @param evt
+	 */
 	private void btnChooseImage(ActionEvent evt) {
-		// TODO Auto-generated method stub
+		// buka popup pilih gambar
 		int result = chooser.showOpenDialog(this);
 
+		// kalo gambarnya udah kepilih
 		if (result == JFileChooser.APPROVE_OPTION) {
-
+			// ambil file gambar yang kepilih
 			File fileImg = chooser.getSelectedFile();
 			try {
+				// dibaca gambarnya
 				img = ImageIO.read(fileImg);
+				// masukin ke panel gambar awal
 				this.addPanelImage(PanelImage.getInstance(img));
+				// disable tombol pilih gambar
 				btnChooseImage.setEnabled(false);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				// kalo ada error cetak ke log
 				System.err.println("btnChooseImage : " + e);
 			}
 
 		}
 	}
 
+	/**
+	 * method untuk memfilter gambar
+	 * 
+	 * @param e
+	 */
 	protected void btnMedianFilter(ActionEvent e) {
-		// TODO Auto-generated method stub
-		if (!(img == null)) {
 
-			int size = Integer.valueOf(this.textRadius.getText());
+		// baca radius yang dari inputan user
+		String radius = this.textRadius.getText();
 
-			MedianFilter median = new MedianFilter(size);
-
-			PanelImage panel = PanelImage.getInstance(median.filter(this.img));
-
-			this.addPanelImage(panel);
-
+		if (img == null) {
+			// munculin pop up
+			JOptionPane.showMessageDialog(this, "choose image first !");
+		} else if (radius.isEmpty()) {
+			JOptionPane.showMessageDialog(this, "fill the radius field !");
 		} else {
 
-			JOptionPane.showMessageDialog(this, "choose image first !");
+			int size = Integer.valueOf(radius);
 
+			// bikin objek MEdianFIlter, ntar ini objek yang bakal ngefilter
+			// gambar
+			MedianFilter median = new MedianFilter(size);
+
+			// filter gambar
+			this.filteredImage = median.filter(this.img);
+			PanelImage panel = PanelImage.getInstance(this.filteredImage);
+
+			// masukin hasil filter ke panel hasil
+			this.addPanelImage(panel);
+
+			this.btnMedian.setEnabled(false);
+		}
+	}
+
+	/**
+	 * method untuk save gambar
+	 * 
+	 * @param e
+	 */
+	private void btnSaveImage(ActionEvent e) {
+		// objek untuk memunculkan popup save
+		JFileChooser fileChooser = new JFileChooser();
+		// set popup agar cuma bisa milih gambar yg format jpg
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Images", "jpg");
+		fileChooser.setFileFilter(filter);
+
+		// kalau user sudah memilih file dan gambar sudah di filter
+		if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION && this.filteredImage != null) {
+
+			// ambil directory yang sudah di pilih dr popup
+			File directory = fileChooser.getSelectedFile();
+			try {
+				// save file di directory yg sudah di pilih
+				ImageIO.write(this.filteredImage, "jpg", directory);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		} else {
+			JOptionPane.showMessageDialog(this, "there's no filtered image");
 		}
 	}
 
